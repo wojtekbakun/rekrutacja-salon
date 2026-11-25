@@ -165,6 +165,23 @@ public record WidgetRequest(
 }
 ```
 
+Trimming a field that ALSO has a format validator (`@Email`, `@Pattern`, custom constraint) – validation
+runs before the mapper, so trim in a compact constructor; keep lowercasing in the mapper:
+```java
+public record XRequest(
+        @NotBlank
+        @Email
+        @Size(max = 100)
+        String email
+) {
+
+    public XRequest {
+        // Bean Validation runs on the trimmed value; the mapper lowercases for case-insensitive uniqueness.
+        email = email == null ? null : email.trim();
+    }
+}
+```
+
 ## `WidgetResponse.java`
 
 ```java

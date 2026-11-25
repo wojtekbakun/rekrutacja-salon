@@ -147,7 +147,7 @@ export class WidgetList {
   </table>
 }
 ```
-`colspan` = number of columns. First column = the most identifying field, linked to details.
+`colspan` = number of columns. First column = the unique business key if the entity has one (like VIN), linked to details; otherwise the name. Person-like entities: keep natural order (first name, last name, …) and link the unique key column (e.g. e-mail) – do not reorder fields to put the key first. Detail `<h1>` = the human-readable name.
 
 ## `widget-detail.ts` / `widget-detail.html`
 
@@ -455,6 +455,23 @@ describe('WidgetList', () => {
     await fixture.whenStable();
 
     expect(rows()).toEqual(['No widgets yet.']);
+  });
+
+  it('shows the ProblemDetail detail when deleting fails', async () => {
+    http.expectOne({ method: 'GET', url: '/api/widgets' }).flush([widget]);
+    await fixture.whenStable();
+
+    element.querySelector<HTMLButtonElement>('tbody button')!.click();
+    http
+      .expectOne({ method: 'DELETE', url: '/api/widgets/1' })
+      .flush(
+        { title: 'Conflict', status: 409, detail: 'Widget is in use' },
+        { status: 409, statusText: 'Conflict' },
+      );
+
+    await vi.waitFor(() =>
+      expect(element.querySelector('.error')?.textContent?.trim()).toBe('Widget is in use'),
+    );
   });
 });
 ```

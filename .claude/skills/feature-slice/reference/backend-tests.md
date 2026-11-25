@@ -30,7 +30,7 @@ naming `methodDoesWhatWhenCondition`, constants for test data, private static fa
 | RepositoryTest | `saveStoresWidgetThatCanBeReadBack` | save, `flush`, `clear`, `findById` → `isNotSameAs`, every field equal |
 | RepositoryTest | `existsBy<Field>AndIdNotFinds<Field>OfAnotherWidget` (each unique field) | true for other row, false for itself, false for unknown value |
 | RepositoryTest | `saveRejectsDuplicate<Field>` (each unique field) | `assertThatThrownBy(() -> repo.saveAndFlush(duplicate)).isInstanceOf(DataIntegrityViolationException.class)` (use `saveAndFlush` – `entityManager.flush()` throws an untranslated Hibernate exception); proves the SQL constraint exists |
-| ValidatorTest (per custom constraint) | valid values, invalid values, `null` → valid | plain JUnit, `new XValidator().isValid(value, null)` |
+| ValidatorTest (per custom constraint) | valid values, invalid values (wrong length, non-digits, separators, bad checksum), `null` → valid | plain JUnit, `@ParameterizedTest` + `@ValueSource` allowed (in `spring-boot-starter-test`), `new XValidator().isValid(value, null)` |
 
 Nested variant adds: service 404 when parent is missing (message of the parent), 404 when the child belongs to another parent (`findByIdAndParentId` empty), list filtered by parent; controller paths with `{parentId}`, `Location` `http://localhost/api/parents/1/children/5`.
 
@@ -79,7 +79,7 @@ class WidgetControllerTest {
 ```
 
 Pitfalls in tests
-- One field can produce two errors (e.g. `""` violates `@NotBlank` and `@Pattern`) → errors are sorted by field, then message; prefer invalid values that break exactly one rule, or assert both.
+- One field can produce two errors (e.g. `""` violates `@NotBlank` and `@Pattern`) → errors are sorted by field, then message; prefer invalid values that break exactly one rule, or assert both. Too-long e-mail: lengthen the **domain** (`"a@" + "b".repeat(95) + ".pl"`) – a local part over 64 chars also fails `@Email`.
 - `@WebMvcTest` loads only the controller + advice: a service that needs a `Clock` bean is mocked, so no extra config is needed there; `@DataJpaTest` does not load services.
 - Do not use `LocalDate.now()` in assertions of date rules – use a fixed `Clock` (`Clock.fixed(Instant.parse("2026-06-15T10:00:00Z"), ZoneOffset.UTC)`).
 - Never edit or weaken vehicle tests to make a new slice pass.

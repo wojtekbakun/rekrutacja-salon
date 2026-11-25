@@ -13,6 +13,7 @@
 - Custom messages: lowercase, no trailing period, describe the rule (`"must be 13 digits with a valid check digit"`).
 - Uniqueness: service check (409 with message) **and** DB constraint (the `DataIntegrityViolationException` handler is only a race safety net). On update, load the entity first (404 wins over 409), then `existsBy…AndIdNot`.
 - Case-insensitive uniqueness: normalize before both the exists-check and the save (mapper `normalize…`), test it with a mixed-case duplicate.
+- Trimming a field that has a format validator (`@Email`, `@Pattern`, custom): Bean Validation runs **before** the mapper, so `" a@b.pl "` is rejected as malformed. Trim in the request record's compact constructor (see `WidgetRequest` note in `backend.md`); lowercase in the mapper. Test both: padded value → 201/stored trimmed, mixed case duplicate → 409.
 - Optional numbers/dates: no `@NotNull`; optional strings: `@Size` only. Empty string from the form is sent as `null`.
 - Do not add a new exception type or handler for a 400/404/409 that `error/*` already covers.
 - Rules that depend on "today": inject `java.time.Clock` (a `Clock` bean, `Clock.systemDefaultZone()`, registered once in a `@Configuration`), never `LocalDate.now()` without a clock – otherwise tests are date-dependent.
