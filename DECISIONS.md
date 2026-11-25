@@ -54,8 +54,41 @@ Trzeciej generacji nie robiłem: kod v2 nie wymagał zmian, a poprawki v3 dotycz
 
 ## 4. Feature A – dokumenty i gotowość
 
-_(uzupełniane w trakcie fazy 4)_
+### Co wygenerował skill, a co zrobiłem ręcznie
+
+| Część | Kto | Commit |
+| --- | --- | --- |
+| `dealerRegistration` na pojeździe (migracja V6, encja, request opcjonalny → `false`, response, checkbox, szczegóły; dostosowanie testów startera do nowego konstruktora + nowe testy) | ręcznie – zmiana istniejącego modułu, poza wzorcem „nowy wycinek” | `dee73ca` |
+| Szkielet dokumentów: migracja V7 (FK `ON DELETE CASCADE`, indeks), seed V8, encja, enumy `DocumentType`/`DocumentStatus`, repozytorium, request/response, mapper (status `PENDING` przy tworzeniu), serwis z 404 dla pojazdu, kontroler GET/POST, 3 klasy testów, sekcja „Documents” z listą i formularzem + spec | **skill** w świeżym subagencie (wariant zagnieżdżony), bez ręcznych poprawek | `1bb7d21` |
+| Reguły: `issueDate` ≤ dziś i `expiryDate` ≥ `issueDate` (400, bean `Clock`, `RequestValidationException` renderowany jak błąd Bean Validation), jeden aktywny dokument typu (409), macierz przejść w `DocumentStatus.canTransitionTo` (409), `PUT …/status`, dokument innego pojazdu → 404 | ręcznie | `1fced94` |
+| `GET …/handover-readiness`: czysty `HandoverReadinessCalculator` (bez Springa), testy graniczne (dzień wydania włącznie, dzień wcześniej, tylko odrzucony = brak, POA warunkowo, PENDING + wygasły = 2 problemy, brak daty, przykład z kontraktu), test kształtu JSON z jawnym `documentType: null` | ręcznie | `1fced94` |
+| UI: przyciski Verify/Reject tylko dla dozwolonych przejść, komponent `VehicleReadiness` odświeżany po zmianie dokumentów, specy | ręcznie (rozszerzenie wygenerowanej sekcji) | `8fb6be9` |
+
+Weryfikacja: `test.sh` (backend 143, frontend 39), `ng build`, smoke test na żywym API dla wszystkich kryteriów z `INTENT.md` §8 (skrypt w logu sesji) oraz ręczny test w UI (Verify → status, przyciski i gotowość odświeżone).
+
+### Luki skilla wykryte przy dokumentach (poprawione w v4, `1af5152`)
+Generacja przeszła, ale subagent zgłosił, że skill zakładał pełny CRUD:
+- macierz testów i szablony (`updateEntity`, `findByIdAndParentId`) nie mówiły, co robić przy częściowym zestawie operacji → dodana sekcja „Partial operations” i macierz dla zasobu zagnieżdżonego;
+- brak pojęcia pola zarządzanego przez serwer (status) → sekcja „Server-managed fields”;
+- **błąd w szablonie sekcji**: czyszczenie formularza przez `model.set(empty)` po udanym dodaniu pokazałoby od razu „… is required” (submit oznacza pola jako touched) → `form().reset(empty)`;
+- `test.sh` nie kompiluje szablonów komponentów bez specu i nie sprawdza Prettiera → krok weryfikacji uzupełniony o `ng build` i `prettier --check`;
+- seed zagnieżdżony przez podzapytanie po kluczu rodzica zamiast sztywnych id.
 
 ## 5. Decyzje projektowe
 
-_(uzupełniane w trakcie)_
+| # | Decyzja | Uzasadnienie |
+| --- | --- | --- |
+| D1 | **Zmiana założenia Z8**: bez daty wydania wygaśnięcie liczone względem dzisiaj | Wyłapane przy pisaniu testu „przykład z kontraktu”: odpowiedź w briefie ma jednocześnie `OC_POLICY EXPIRED` i `NO_HANDOVER_DATE`, a pierwotne Z8 (zaakceptowane w `INTENT.md`) czyniło to niemożliwym. Kontrakt jest nadrzędny; reguła jest też sensowna biznesowo (polisa wygasła dziś będzie wygasła w każdym przyszłym dniu wydania). `INTENT.md` zaktualizowany. **Do potwierdzenia z klientem.** |
+| D2 | Reguły przejść statusów w jednym miejscu (`DocumentStatus.canTransitionTo`), frontend ma jedynie lustrzaną mapę do pokazywania przycisków | Decyzja dyrektora (K1) może zmienić `REJECTED → VERIFIED` – zmiana jednej linii + testu; backend pozostaje autorytetem (409) |
+| D3 | Reguły dat w serwisie z `Clock`, nie `@PastOrPresent` | Testowalność „dzisiaj” (fixed clock); błąd zwracany w tym samym formacie `errors[]` co Bean Validation, przez nowy `RequestValidationException` w pakiecie `error` |
+| D4 | Unikalność aktywnego dokumentu tylko w serwisie, bez constraintu w bazie | H2 nie obsługuje indeksów częściowych (`WHERE status <> 'REJECTED'`); przy wyścigu możliwe 2 aktywne dokumenty – kalkulator bierze wtedy najnowszy. Na produkcyjnej bazie (PostgreSQL) dodać indeks częściowy |
+| D5 | `HandoverReadinessCalculator` jako czysta klasa, osobny `HandoverReadinessController` | Reguły testowane bez Springa i bez mocków; ścieżka spoza `/documents` nie zaśmieca kontrolera dokumentów |
+| D6 | Gotowość w osobnym komponencie odświeżanym przez `output` sekcji | Wygenerowany spec sekcji pozostał nietknięty; gotowość ma własny spec |
+| D7 | `dealerRegistration` opcjonalne w `VehicleRequest` (brak = `false`) | Z1; istniejący klienci API i testy rekruterów dla pojazdów nie wysyłają tego pola |
+| D8 | Usunięcie pojazdu kasuje dokumenty (`ON DELETE CASCADE`) | Z16; sprawdzone smoke testem (DELETE 204) i testem repozytorium |
+
+## 6. Ograniczenia znane przy oddaniu
+
+- Zmiana daty wydania na stronie edycji pojazdu odświeża gotowość dopiero po wejściu na szczegóły (inna strona – zachowanie naturalne, bez dodatkowej synchronizacji).
+- `Location` dla `POST …/documents` wskazuje `…/documents/{id}`, choć kontrakt nie ma GET pojedynczego dokumentu (zgodnie z konwencją modułu pojazdów).
+- Brak constraintu bazy dla „jednego aktywnego dokumentu” (D4).

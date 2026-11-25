@@ -140,11 +140,11 @@ UI: lista, szczegóły, formularz – jak moduł pojazdów, link w nawigacji.
 | Z5 | `expiryDate` jest opcjonalna dla każdego typu; dokument bez daty ważności nigdy nie jest `EXPIRED`. | „Nie każdy”, „pełnomocnictwo zwykle też” `[T:91]` – nie ma twardej reguły per typ; kontrakt: „opcjonalnie `expiryDate`” `[K]`. |
 | Z6 | `expiryDate` nie może być wcześniejsza niż `issueDate` → 400. | Oczywisty błąd wpisu, analogicznie do `[T:95]`. |
 | Z7 | „Dzisiaj” dla walidacji `issueDate` = `LocalDate.now(clock)` serwera (wstrzykiwany `Clock`, testowalny). | Brak informacji o strefie; salon jest w Polsce, aplikacja jednostrefowa. |
-| Z8 | Bez daty wydania nie liczę `EXPIRED` (nie ma do czego porównać); zwracam tylko `NO_HANDOVER_DATE` + braki + `NOT_VERIFIED`. | `[T:91]` wiąże ważność z dniem wydania. |
+| Z8 | ~~Bez daty wydania nie liczę `EXPIRED`.~~ **Zmienione w implementacji:** bez daty wydania ważność sprawdzam względem dnia dzisiejszego (dokument wygasły dziś jest wygasły przy każdym przyszłym wydaniu); dochodzi `NO_HANDOVER_DATE`. | Przykład odpowiedzi w kontrakcie `[K]` zawiera jednocześnie `OC_POLICY EXPIRED` i `NO_HANDOVER_DATE` – pierwotne Z8 czyniło go nieosiągalnym. Kontrakt nadrzędny. Zob. `DECISIONS.md` D1. |
 | Z9 | Dokument `PENDING` i jednocześnie przeterminowany → dwa wpisy w `problems` (`NOT_VERIFIED` i `EXPIRED`). | Doradca widzi od razu wszystko, „czego brakuje” `[T:101]`. |
 | Z10 | Gdy `dealerRegistration = false`, `REGISTRATION_POA` jest ignorowane w gotowości (nawet jeśli wgrane i np. nieważne). | Nie jest wymagane `[T:81]`, więc nie może blokować wydania. |
 | Z11 | Kolejność: `missingDocumentTypes` i `problems` w kolejności typów z kontraktu; `NO_HANDOVER_DATE` na końcu. | Deterministyczna odpowiedź; zgodne z przykładem w `[K]`. |
-| Z12 | Ocena wygaśnięcia względem daty wydania, nie względem dzisiaj. | „ważny w dniu wydania” `[T:91]`. |
+| Z12 | Ocena wygaśnięcia względem daty wydania, nie względem dzisiaj (gdy data wydania jest ustalona; bez niej – Z8). | „ważny w dniu wydania” `[T:91]`. |
 | Z13 | `number` dokumentu: wymagany, maks. 50 znaków, bez unikalności. | Brak wymagań; konwencja długości z `Vehicle`. |
 | Z14 | Dokument innego pojazdu lub nieistniejący pojazd/dokument → 404. | Konwencja `NotFoundException` `[KOD]`. |
 | Z15 | Brak usuwania i edycji dokumentów (tylko zmiana statusu). | Kontrakt ich nie przewiduje `[K]`; historia ma być widoczna przy kontroli `[T:111]`. |
