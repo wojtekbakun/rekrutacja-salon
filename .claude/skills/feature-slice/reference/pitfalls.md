@@ -10,7 +10,7 @@
 
 ## Validation and errors
 - Bean Validation messages come from Hibernate Validator in English (locale is fixed). Do not hand-write `"must not be blank"` as a custom message – just use the annotation.
-- Custom messages: lowercase, no trailing period, describe the rule (`"must be 10 digits with a valid checksum"`).
+- Custom messages: lowercase, no trailing period, describe the rule (`"must be 13 digits with a valid check digit"`).
 - Uniqueness: service check (409 with message) **and** DB constraint (the `DataIntegrityViolationException` handler is only a race safety net). On update, load the entity first (404 wins over 409), then `existsBy…AndIdNot`.
 - Case-insensitive uniqueness: normalize before both the exists-check and the save (mapper `normalize…`), test it with a mixed-case duplicate.
 - Optional numbers/dates: no `@NotNull`; optional strings: `@Size` only. Empty string from the form is sent as `null`.

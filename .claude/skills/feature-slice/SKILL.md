@@ -1,6 +1,6 @@
 ---
 name: feature-slice
-description: Generates a complete, test-covered feature slice (Flyway migration + seed, JPA entity, repository, request/response records, mapper, service, REST controller, backend tests, Angular API service, list/detail/form components, routes, nav link, frontend specs) that matches the existing vehicle module of this Spring Boot + Angular dealership app. Use whenever the user asks to add/generate/scaffold a new entity, CRUD, resource, module, endpoint set or "slice" (e.g. "generate customers", "add a CRUD for X with fields …", "nested resource /api/parents/{id}/children").
+description: Generates a complete, test-covered feature slice (Flyway migration + seed, JPA entity, repository, request/response records, mapper, service, REST controller, backend tests, Angular API service, list/detail/form components, routes, nav link, frontend specs) that matches the existing vehicle module of this Spring Boot + Angular dealership app. Use whenever the user asks to add/generate/scaffold a new entity, CRUD, resource, module, endpoint set or "slice" (e.g. "generate suppliers", "add a CRUD for X with fields …", "nested resource /api/parents/{id}/children").
 ---
 
 # feature-slice
@@ -17,11 +17,11 @@ default in brackets and list it under "Assumptions" in the final report — do n
 
 | Item | Example | Default |
 | --- | --- | --- |
-| Entity name (PascalCase singular) | `Customer` | – (required) |
-| Plural / URL segment | `customers` → `/api/customers` | English plural, kebab-case |
-| Table | `customer` | snake_case singular |
-| Parent (nested resource) | `Vehicle` → `/api/vehicles/{vehicleId}/documents` | none (top-level CRUD) |
-| Fields: name, type, required, max length, unique, format, enum values | `email: String, required, unique (case-insensitive), email format` | String max 50 (100 for e-mail/longer text), required unless stated "optional" |
+| Entity name (PascalCase singular) | `Supplier` | – (required) |
+| Plural / URL segment | `suppliers` → `/api/suppliers` | English plural, kebab-case |
+| Table | `supplier` | snake_case singular |
+| Parent (nested resource) | `Vehicle` → `/api/vehicles/{vehicleId}/inspections` | none (top-level CRUD) |
+| Fields: name, type, required, max length, unique, format, enum values | `contactEmail: String, required, unique (case-insensitive), e-mail format` | String max 50 (100 for e-mail/longer text), required unless stated "optional" |
 | Operations | full CRUD | top-level: full CRUD; nested: only what the user lists |
 
 Name rules: Java field camelCase = JSON field = TS field; SQL column snake_case; labels in English sentence case (`firstName` → "First name").
@@ -39,9 +39,9 @@ Find the next migration number: `ls backend/src/main/resources/db/migration` →
 
 ## 2. Files to create / modify
 
-Backend (`backend/src/main/java/com/example/dealership/<feature>/`, `<feature>` = lowercase singular, e.g. `customer`):
+Backend (`backend/src/main/java/com/example/dealership/<feature>/`, `<feature>` = lowercase singular, e.g. `supplier`):
 - [ ] `X.java` entity, `XRepository.java`, `XRequest.java`, `XResponse.java`, `XMapper.java`, `XService.java`, `XController.java`
-- [ ] enum per enum field (`XType.java`); custom constraint pair (`Nip.java` + `NipValidator.java`) per non-trivial format/cross-field rule
+- [ ] enum per enum field (`XType.java`); custom constraint pair (`Ean13.java` + `Ean13Validator.java`) per non-trivial format/cross-field rule
 - [ ] `backend/src/main/resources/db/migration/V<n>__<table>.sql`, `V<n+1>__<table>_seed.sql` (2–3 rows that **pass all validation rules**)
 - [ ] tests in `backend/src/test/java/com/example/dealership/<feature>/`: `XServiceTest`, `XControllerTest`, `XRepositoryTest` (+ `XValidatorTest` per custom validator)
 

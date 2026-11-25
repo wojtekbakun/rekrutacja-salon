@@ -367,16 +367,16 @@ public class WidgetController {
 
 ## Custom constraint (format with checksum, cross-field rule)
 
-Pattern of `ProductionYear` + `ProductionYearValidator`. Example `Nip` (Polish tax id, 10 digits, weights 6,5,7,2,3,4,5,6,7, sum mod 11 == last digit, mod 11 == 10 is invalid):
+Pattern of `ProductionYear` + `ProductionYearValidator`. Example `Ean13` (13 digits, weights 1,3,1,3…, check digit = (10 - sum % 10) % 10):
 
 ```java
 @Documented
-@Constraint(validatedBy = NipValidator.class)
+@Constraint(validatedBy = Ean13Validator.class)
 @Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Nip {
+public @interface Ean13 {
 
-    String message() default "must be 10 digits with a valid checksum";
+    String message() default "must be 13 digits with a valid check digit";
 
     Class<?>[] groups() default {};
 
@@ -384,9 +384,7 @@ public @interface Nip {
 }
 ```
 ```java
-public class NipValidator implements ConstraintValidator<Nip, String> {
-
-    private static final int[] WEIGHTS = {6, 5, 7, 2, 3, 4, 5, 6, 7};
+public class Ean13Validator implements ConstraintValidator<Ean13, String> {
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
@@ -406,7 +404,7 @@ Rules that need "today" or other rows go to the service with an injected `java.t
 
 ## Nested variant: `/api/parents/{parentId}/children`
 
-Use when the entity belongs to a parent (e.g. documents of a vehicle). Differences only:
+Use when the entity belongs to a parent (e.g. inspections of a vehicle). Differences only:
 
 - Migration: `parent_id BIGINT NOT NULL`, `CONSTRAINT fk_<table>_<parent> FOREIGN KEY (parent_id) REFERENCES <parent>(id) ON DELETE CASCADE`, plus `CREATE INDEX ix_<table>_<parent> ON <table>(parent_id);`.
 - Entity: plain `@Column(name = "parent_id", nullable = false) private Long parentId;` (no `@ManyToOne` – keeps the entity simple, `open-in-view=false` makes lazy relations fragile). Constructor takes `parentId` first. No setter for `parentId`.
