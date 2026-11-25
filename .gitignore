@@ -3,12 +3,18 @@ target/
 build/
 .gradle/
 *.class
+
 # Node / Angular
 node_modules/
 dist/
 .angular/
-# IDE / OS
+
+# IDEs and OS
 .idea/
-.vscode/
 *.iml
+.vscode/
 .DS_Store
+
+# Claude Code
+.claude/worktrees/
+.claude/settings.local.json
