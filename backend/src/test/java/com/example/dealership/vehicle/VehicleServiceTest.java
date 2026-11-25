@@ -65,6 +65,38 @@ class VehicleServiceTest {
     }
 
     @Test
+    void createDefaultsDealerRegistrationToFalseWhenMissing() {
+        when(vehicleRepository.existsByVin(VIN)).thenReturn(false);
+        when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VehicleResponse response = vehicleService.create(request(VIN, null));
+
+        assertThat(response.dealerRegistration()).isFalse();
+    }
+
+    @Test
+    void createStoresDealerRegistrationWhenSet() {
+        when(vehicleRepository.existsByVin(VIN)).thenReturn(false);
+        when(vehicleRepository.save(any(Vehicle.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        VehicleResponse response = vehicleService.create(request(VIN, true));
+
+        assertThat(response.dealerRegistration()).isTrue();
+    }
+
+    @Test
+    void updateChangesDealerRegistration() {
+        Vehicle vehicle = vehicle(VIN);
+        when(vehicleRepository.findById(1L)).thenReturn(Optional.of(vehicle));
+        when(vehicleRepository.existsByVinAndIdNot(VIN, 1L)).thenReturn(false);
+        when(vehicleRepository.save(vehicle)).thenReturn(vehicle);
+
+        vehicleService.update(1L, request(VIN, true));
+
+        assertThat(vehicle.isDealerRegistration()).isTrue();
+    }
+
+    @Test
     void createThrowsConflictWhenVinAlreadyExists() {
         when(vehicleRepository.existsByVin(VIN)).thenReturn(true);
 
@@ -128,10 +160,15 @@ class VehicleServiceTest {
     }
 
     private static Vehicle vehicle(String vin) {
-        return new Vehicle(vin, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15));
+        return new Vehicle(vin, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15), false);
     }
 
     private static VehicleRequest request(String vin) {
-        return new VehicleRequest(vin, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15));
+        return request(vin, null);
+    }
+
+    private static VehicleRequest request(String vin, Boolean dealerRegistration) {
+        return new VehicleRequest(
+                vin, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15), dealerRegistration);
     }
 }

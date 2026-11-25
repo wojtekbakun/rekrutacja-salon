@@ -111,6 +111,7 @@ describe('VehicleForm', () => {
       productionYear: 2025,
       fuelType: 'PETROL',
       plannedHandoverDate: '2026-12-15',
+      dealerRegistration: false,
     });
     request.flush({ id: 7, ...request.request.body });
 
@@ -127,12 +128,14 @@ describe('VehicleForm', () => {
       productionYear: 2026,
       fuelType: 'HYBRID',
       plannedHandoverDate: null,
+      dealerRegistration: false,
     };
     fixture.componentRef.setInput('id', '3');
     fixture.detectChanges();
     http.expectOne({ method: 'GET', url: '/api/vehicles/3' }).flush(vehicle);
     await fixture.whenStable();
     fill('text', 2, 'Superb');
+    element.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();
 
     await submit();
     const request = http.expectOne({ method: 'PUT', url: '/api/vehicles/3' });
@@ -143,6 +146,7 @@ describe('VehicleForm', () => {
       productionYear: 2026,
       fuelType: 'HYBRID',
       plannedHandoverDate: null,
+      dealerRegistration: true,
     });
     request.flush({ ...vehicle, model: 'Superb' });
 

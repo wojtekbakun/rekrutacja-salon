@@ -27,6 +27,9 @@ public record VehicleRequest(
         @NotNull
         FuelType fuelType,
 
-        LocalDate plannedHandoverDate
+        LocalDate plannedHandoverDate,
+
+        // Optional: null means the customer registers the car (INTENT Z1).
+        Boolean dealerRegistration
 ) {
 }

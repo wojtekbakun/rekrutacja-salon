@@ -63,7 +63,8 @@ class VehicleControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].vin").value(VIN))
                 .andExpect(jsonPath("$[0].fuelType").value("PETROL"))
-                .andExpect(jsonPath("$[0].plannedHandoverDate").value("2026-12-15"));
+                .andExpect(jsonPath("$[0].plannedHandoverDate").value("2026-12-15"))
+                .andExpect(jsonPath("$[0].dealerRegistration").value(true));
     }
 
     @Test
@@ -94,6 +95,18 @@ class VehicleControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/api/vehicles/1"))
                 .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void createPassesDealerRegistrationFromBody() throws Exception {
+        when(vehicleService.create(any(VehicleRequest.class))).thenReturn(response());
+        String body = VALID_BODY.replace("\"plannedHandoverDate\"", "\"dealerRegistration\": true, \"plannedHandoverDate\"");
+
+        mockMvc.perform(post("/api/vehicles").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isCreated());
+
+        verify(vehicleService).create(new VehicleRequest(
+                VIN, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15), true));
     }
 
     @Test
@@ -269,6 +282,6 @@ class VehicleControllerTest {
 
     private static VehicleResponse response() {
         return new VehicleResponse(
-                1L, VIN, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15));
+                1L, VIN, "Volkswagen", "Golf", 2025, FuelType.PETROL, LocalDate.of(2026, 12, 15), true);
     }
 }

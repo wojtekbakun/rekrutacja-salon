@@ -24,9 +24,9 @@ class VehicleRepositoryTest {
     @Test
     void existsByVinAndIdNotFindsVinOfAnotherVehicle() {
         Vehicle first = vehicleRepository.save(
-                new Vehicle(VIN, "Ford", "Focus", 2026, FuelType.ELECTRIC, null));
+                new Vehicle(VIN, "Ford", "Focus", 2026, FuelType.ELECTRIC, null, false));
         Vehicle second = vehicleRepository.save(
-                new Vehicle(OTHER_VIN, "Ford", "Puma", 2025, FuelType.HYBRID, null));
+                new Vehicle(OTHER_VIN, "Ford", "Puma", 2025, FuelType.HYBRID, null, false));
         entityManager.flush();
 
         assertThat(vehicleRepository.existsByVinAndIdNot(VIN, second.getId())).isTrue();
@@ -37,7 +37,7 @@ class VehicleRepositoryTest {
     @Test
     void saveStoresVehicleThatCanBeReadBack() {
         Vehicle saved = vehicleRepository.save(
-                new Vehicle(VIN, "Ford", "Focus", 2026, FuelType.ELECTRIC, LocalDate.of(2027, 3, 1)));
+                new Vehicle(VIN, "Ford", "Focus", 2026, FuelType.ELECTRIC, LocalDate.of(2027, 3, 1), true));
         entityManager.flush();
         entityManager.clear();
 
@@ -50,6 +50,7 @@ class VehicleRepositoryTest {
         assertThat(found.getProductionYear()).isEqualTo(2026);
         assertThat(found.getFuelType()).isEqualTo(FuelType.ELECTRIC);
         assertThat(found.getPlannedHandoverDate()).isEqualTo(LocalDate.of(2027, 3, 1));
+        assertThat(found.isDealerRegistration()).isTrue();
         assertThat(vehicleRepository.existsByVin(VIN)).isTrue();
         assertThat(vehicleRepository.existsByVinAndIdNot(VIN, saved.getId())).isFalse();
     }

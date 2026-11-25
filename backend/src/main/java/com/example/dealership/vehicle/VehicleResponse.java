@@ -9,6 +9,7 @@ public record VehicleResponse(
         String model,
         Integer productionYear,
         FuelType fuelType,
-        LocalDate plannedHandoverDate
+        LocalDate plannedHandoverDate,
+        boolean dealerRegistration
 ) {
 }

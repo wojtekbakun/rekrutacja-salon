@@ -37,17 +37,21 @@ public class Vehicle {
 
     private LocalDate plannedHandoverDate;
 
+    @Column(nullable = false)
+    private boolean dealerRegistration;
+
     protected Vehicle() {
     }
 
     public Vehicle(String vin, String make, String model, Integer productionYear, FuelType fuelType,
-            LocalDate plannedHandoverDate) {
+            LocalDate plannedHandoverDate, boolean dealerRegistration) {
         this.vin = vin;
         this.make = make;
         this.model = model;
         this.productionYear = productionYear;
         this.fuelType = fuelType;
         this.plannedHandoverDate = plannedHandoverDate;
+        this.dealerRegistration = dealerRegistration;
     }
 
     public Long getId() {
@@ -100,5 +104,13 @@ public class Vehicle {
 
     public void setPlannedHandoverDate(LocalDate plannedHandoverDate) {
         this.plannedHandoverDate = plannedHandoverDate;
+    }
+
+    public boolean isDealerRegistration() {
+        return dealerRegistration;
+    }
+
+    public void setDealerRegistration(boolean dealerRegistration) {
+        this.dealerRegistration = dealerRegistration;
     }
 }

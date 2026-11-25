@@ -16,6 +16,8 @@
     <dd>{{ fuelTypeLabels[vehicle.fuelType] }}</dd>
     <dt>Planned handover</dt>
     <dd>{{ vehicle.plannedHandoverDate ?? '—' }}</dd>
+    <dt>Registration</dt>
+    <dd>{{ vehicle.dealerRegistration ? 'By dealership' : 'By customer' }}</dd>
   </dl>
 
   <p><a [routerLink]="['/vehicles', vehicle.id, 'edit']">Edit</a></p>

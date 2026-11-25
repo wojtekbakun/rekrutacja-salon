@@ -75,6 +75,11 @@
       }
     }
 
+    <label>
+      <input type="checkbox" [formField]="vehicleForm.dealerRegistration" />
+      Dealership registers the vehicle (registration power of attorney required)
+    </label>
+
     <button type="submit" [disabled]="vehicleForm().submitting()">Save</button>
     <a [routerLink]="isEdit() ? ['/vehicles', id()] : ['/vehicles']">Cancel</a>
   </form>
