@@ -1,0 +1,29 @@
+<section>
+  <h2>Handover readiness</h2>
+
+  @if (readiness.error(); as error) {
+    <p class="error" role="alert">{{ loadError(error) }}</p>
+  } @else if (readiness.value(); as readiness) {
+    @if (readiness.ready) {
+      <p><strong>Ready for handover</strong></p>
+    } @else {
+      <p><strong>Not ready for handover</strong></p>
+      <ul>
+        @for (type of readiness.missingDocumentTypes; track type) {
+          <li>Missing: {{ documentTypeLabels[type] }}</li>
+        }
+        @for (problem of readiness.problems; track $index) {
+          <li>
+            @if (problem.documentType; as type) {
+              {{ documentTypeLabels[type] }}: {{ reasonLabels[problem.reason] }}
+            } @else {
+              {{ reasonLabels[problem.reason] }}
+            }
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <p>Loading…</p>
+  }
+</section>

@@ -22,6 +22,33 @@ export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
   REJECTED: 'Rejected',
 };
 
+// Mirrors DocumentStatus.canTransitionTo on the backend (which stays the authority and answers 409).
+export const ALLOWED_STATUS_CHANGES: Record<DocumentStatus, DocumentStatus[]> = {
+  PENDING: ['VERIFIED', 'REJECTED'],
+  VERIFIED: ['REJECTED'],
+  REJECTED: [],
+};
+
+export const STATUS_CHANGE_LABELS: Record<DocumentStatus, string> = {
+  PENDING: 'Reopen',
+  VERIFIED: 'Verify',
+  REJECTED: 'Reject',
+};
+
+export type ReadinessReason = 'NOT_VERIFIED' | 'EXPIRED' | 'NO_HANDOVER_DATE';
+
+export const READINESS_REASON_LABELS: Record<ReadinessReason, string> = {
+  NOT_VERIFIED: 'not verified',
+  EXPIRED: 'expired before the handover date',
+  NO_HANDOVER_DATE: 'No planned handover date',
+};
+
+export interface HandoverReadiness {
+  ready: boolean;
+  missingDocumentTypes: DocumentType[];
+  problems: { documentType: DocumentType | null; reason: ReadinessReason }[];
+}
+
 export interface VehicleDocument {
   id: number;
   vehicleId: number;
@@ -47,5 +74,20 @@ export class VehicleDocumentApi {
 
   create(vehicleId: number, request: VehicleDocumentRequest): Observable<VehicleDocument> {
     return this.http.post<VehicleDocument>(`/api/vehicles/${vehicleId}/documents`, request);
+  }
+
+  changeStatus(
+    vehicleId: number,
+    documentId: number,
+    status: DocumentStatus,
+  ): Observable<VehicleDocument> {
+    return this.http.put<VehicleDocument>(
+      `/api/vehicles/${vehicleId}/documents/${documentId}/status`,
+      { status },
+    );
+  }
+
+  readiness(vehicleId: Signal<number>) {
+    return httpResource<HandoverReadiness>(() => `/api/vehicles/${vehicleId()}/handover-readiness`);
   }
 }

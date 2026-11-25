@@ -1,6 +1,10 @@
 <section>
   <h2>Documents</h2>
 
+  @if (actionError(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
+
   @if (documents.isLoading()) {
     <p>Loading…</p>
   } @else if (documents.error(); as error) {
@@ -14,6 +18,7 @@
           <th>Issue date</th>
           <th>Expiry date</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -24,10 +29,17 @@
             <td>{{ document.issueDate }}</td>
             <td>{{ document.expiryDate ?? '—' }}</td>
             <td>{{ documentStatusLabels[document.status] }}</td>
+            <td>
+              @for (status of allowedStatusChanges[document.status]; track status) {
+                <button type="button" (click)="changeStatus(document, status)">
+                  {{ statusChangeLabels[status] }}
+                </button>
+              }
+            </td>
           </tr>
         } @empty {
           <tr>
-            <td colspan="5">No documents yet.</td>
+            <td colspan="6">No documents yet.</td>
           </tr>
         }
       </tbody>

@@ -22,5 +22,7 @@
 
   <p><a [routerLink]="['/vehicles', vehicle.id, 'edit']">Edit</a></p>
 
-  <app-vehicle-document-section [vehicleId]="vehicle.id" />
+  <app-vehicle-readiness #readiness [vehicleId]="vehicle.id" />
+
+  <app-vehicle-document-section [vehicleId]="vehicle.id" (changed)="readiness.reload()" />
 }

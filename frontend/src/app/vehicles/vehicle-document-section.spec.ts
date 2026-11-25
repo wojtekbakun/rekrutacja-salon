@@ -173,4 +173,73 @@ describe('VehicleDocumentSection', () => {
 
     await vi.waitFor(() => expect(errors()).toEqual(['Vehicle with id 1 not found']));
   });
+
+  function actionButtons(): string[] {
+    return Array.from(element.querySelectorAll('tbody button'), (button) =>
+      button.textContent!.trim(),
+    );
+  }
+
+  it('offers only the status changes allowed for each status', async () => {
+    await loadDocuments([
+      document,
+      { ...document, id: 6, type: 'INVOICE', status: 'VERIFIED' },
+      { ...document, id: 7, type: 'COC', status: 'REJECTED' },
+    ]);
+
+    const buttonsPerRow = Array.from(element.querySelectorAll('tbody tr'), (row) =>
+      Array.from(row.querySelectorAll('button'), (button) => button.textContent!.trim()),
+    );
+    expect(buttonsPerRow).toEqual([['Verify', 'Reject'], ['Reject'], []]);
+  });
+
+  it('changes the status, reloads the list and notifies the parent', async () => {
+    const changed = vi.fn();
+    fixture.componentInstance.changed.subscribe(changed);
+    await loadDocuments([document]);
+
+    element.querySelector<HTMLButtonElement>('tbody button')!.click();
+    const request = http.expectOne({ method: 'PUT', url: `${url}/5/status` });
+    expect(request.request.body).toEqual({ status: 'VERIFIED' });
+    request.flush({ ...document, status: 'VERIFIED' });
+    await vi.waitFor(() =>
+      http.expectOne({ method: 'GET', url }).flush([{ ...document, status: 'VERIFIED' }]),
+    );
+    await fixture.whenStable();
+
+    expect(rows()[0]).toContain('Verified');
+    expect(actionButtons()).toEqual(['Reject']);
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the ProblemDetail detail when the status change is rejected', async () => {
+    await loadDocuments([document]);
+
+    element.querySelector<HTMLButtonElement>('tbody button')!.click();
+    http.expectOne({ method: 'PUT', url: `${url}/5/status` }).flush(
+      {
+        title: 'Conflict',
+        status: 409,
+        detail: 'Document status cannot change from REJECTED to VERIFIED',
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+
+    await vi.waitFor(() =>
+      expect(errors()).toEqual(['Document status cannot change from REJECTED to VERIFIED']),
+    );
+  });
+
+  it('notifies the parent after adding a document', async () => {
+    const changed = vi.fn();
+    fixture.componentInstance.changed.subscribe(changed);
+    await loadDocuments([]);
+    fillValidDocument();
+
+    await submit();
+    http.expectOne({ method: 'POST', url }).flush(document);
+    await vi.waitFor(() => http.expectOne({ method: 'GET', url }).flush([document]));
+
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
 });

@@ -3,10 +3,11 @@ import { RouterLink } from '@angular/router';
 import { loadErrorMessage } from '../shared/problem-detail';
 import { FUEL_TYPE_LABELS, VehicleApi } from './vehicle-api';
 import { VehicleDocumentSection } from './vehicle-document-section';
+import { VehicleReadiness } from './vehicle-readiness';
 
 @Component({
   selector: 'app-vehicle-detail',
-  imports: [RouterLink, VehicleDocumentSection],
+  imports: [RouterLink, VehicleDocumentSection, VehicleReadiness],
   templateUrl: './vehicle-detail.html',
 })
 export class VehicleDetail {
