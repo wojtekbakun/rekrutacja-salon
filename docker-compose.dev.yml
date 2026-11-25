@@ -1,0 +1,18 @@
+services:
+  dev:
+    build:
+      context: .devcontainer
+    image: salon-dev:jdk21-node22
+    container_name: salon-dev
+    volumes:
+      - .:/workspace
+      - m2-cache:/home/dev/.m2
+      - npm-cache:/home/dev/.npm
+    ports:
+      - "8080:8080"   # Spring Boot
+      - "4200:4200"   # Angular dev server (ng serve --host 0.0.0.0)
+    command: sleep infinity
+
+volumes:
+  m2-cache:
+  npm-cache:
