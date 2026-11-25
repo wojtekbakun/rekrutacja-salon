@@ -1,0 +1,66 @@
+<h1>{{ isEdit() ? 'Edit customer' : 'New customer' }}</h1>
+
+@if (customer.isLoading()) {
+  <p>Loading…</p>
+} @else if (customer.error(); as error) {
+  <p class="error" role="alert">{{ loadError(error) }}</p>
+} @else if (!isEdit() || customer.hasValue()) {
+  <form [formRoot]="customerForm">
+    @for (error of customerForm().errors(); track error) {
+      <p class="error" role="alert">{{ error.message }}</p>
+    }
+
+    <label>
+      First name
+      <input type="text" [formField]="customerForm.firstName" />
+    </label>
+    @if (customerForm.firstName().touched()) {
+      @for (error of customerForm.firstName().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Last name
+      <input type="text" [formField]="customerForm.lastName" />
+    </label>
+    @if (customerForm.lastName().touched()) {
+      @for (error of customerForm.lastName().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Email
+      <input type="email" [formField]="customerForm.email" />
+    </label>
+    @if (customerForm.email().touched()) {
+      @for (error of customerForm.email().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Phone
+      <input type="tel" [formField]="customerForm.phone" />
+    </label>
+    @if (customerForm.phone().touched()) {
+      @for (error of customerForm.phone().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      NIP
+      <input type="text" [formField]="customerForm.nip" />
+    </label>
+    @if (customerForm.nip().touched()) {
+      @for (error of customerForm.nip().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <button type="submit" [disabled]="customerForm().submitting()">Save</button>
+    <a [routerLink]="isEdit() ? ['/customers', id()] : ['/customers']">Cancel</a>
+  </form>
+}

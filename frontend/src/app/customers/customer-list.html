@@ -1,0 +1,47 @@
+<h1>Customers</h1>
+
+<p><a routerLink="/customers/new">Add customer</a></p>
+
+@if (deleteError(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+@if (customers.isLoading()) {
+  <p>Loading…</p>
+} @else if (customers.error(); as error) {
+  <p class="error" role="alert">{{ loadError(error) }}</p>
+} @else if (customers.value(); as customers) {
+  <table>
+    <thead>
+      <tr>
+        <th>First name</th>
+        <th>Last name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>NIP</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (customer of customers; track customer.id) {
+        <tr>
+          <td>{{ customer.firstName }}</td>
+          <td>{{ customer.lastName }}</td>
+          <td>
+            <a [routerLink]="['/customers', customer.id]">{{ customer.email }}</a>
+          </td>
+          <td>{{ customer.phone }}</td>
+          <td>{{ customer.nip ?? '—' }}</td>
+          <td>
+            <a [routerLink]="['/customers', customer.id, 'edit']">Edit</a>
+            <button type="button" (click)="delete(customer)">Delete</button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6">No customers yet.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

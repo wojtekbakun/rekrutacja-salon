@@ -6,4 +6,8 @@ export const routes: Routes = [
     path: 'vehicles',
     loadChildren: () => import('./vehicles/vehicles.routes').then((m) => m.vehiclesRoutes),
   },
+  {
+    path: 'customers',
+    loadChildren: () => import('./customers/customers.routes').then((m) => m.customersRoutes),
+  },
 ];
