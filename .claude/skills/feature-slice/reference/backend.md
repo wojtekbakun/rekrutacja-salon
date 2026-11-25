@@ -240,6 +240,7 @@ public final class WidgetMapper {
     }
 
     // Only for case-insensitive unique fields: the DB unique constraint then enforces it too.
+    // trim() is defensive here; for format-validated fields the request's compact constructor trims first.
     static String normalizeCode(String code) {
         return code.trim().toLowerCase(Locale.ROOT);
     }
@@ -317,6 +318,8 @@ public class WidgetService {
 }
 ```
 Without normalization use `request.code()` directly (exactly like `VehicleService` with VIN).
+
+409 message convention: `"<Entity> with <field label in lowercase words> <stored (normalized) value> already exists"` – e.g. `"Widget with code w-001 already exists"`, `"Vehicle with VIN … already exists"`.
 
 ## `WidgetController.java`
 

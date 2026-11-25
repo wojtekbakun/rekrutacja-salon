@@ -24,6 +24,8 @@ naming `methodDoesWhatWhenCondition`, constants for test data, private static fa
 | ControllerTest | one 400 test per custom format/constraint (e-mail, phone, checksum, …) | exact field + message |
 | ControllerTest | `createReturnsBadRequestProblemWithFieldErrorWhen<Enum>IsUnknown` (if enum) | `"must be one of: SMALL, LARGE"` |
 | ControllerTest | `createReturnsCreatedWidgetWhenOptionalFieldsAreMissing` (if optional fields) | 201 with optional fields omitted from body |
+| ControllerTest | `createReturnsBadRequestProblemWithAllRequiredFieldsWhenBodyIsEmpty` | `{}` → one error per required field, sorted |
+| ControllerTest | `createTrims<Field>BeforeValidation` (if a compact constructor trims) | padded value → 201, `verify(service).create(new XRequest(..trimmed..))` |
 | ControllerTest | `createReturnsConflictProblemWhen<Field>AlreadyExists` | 409 + detail |
 | ControllerTest | `updateReturnsUpdatedWidget`, `updateReturnsNotFoundProblem…`, `updateReturnsBadRequestProblem…`, `updateReturnsConflictProblem…` | 200 / 404 / 400 / 409 |
 | ControllerTest | `deleteReturnsNoContent` / `deleteReturnsNotFoundProblemWhenWidgetDoesNotExist` | 204 + `verify(service).delete(1L)` / 404 |
@@ -33,6 +35,32 @@ naming `methodDoesWhatWhenCondition`, constants for test data, private static fa
 | ValidatorTest (per custom constraint) | valid values, invalid values (wrong length, non-digits, separators, bad checksum), `null` → valid | plain JUnit, `@ParameterizedTest` + `@ValueSource` allowed (in `spring-boot-starter-test`), `new XValidator().isValid(value, null)` |
 
 Nested variant adds: service 404 when parent is missing (message of the parent), 404 when the child belongs to another parent (`findByIdAndParentId` empty), list filtered by parent; controller paths with `{parentId}`, `Location` `http://localhost/api/parents/1/children/5`.
+
+## ValidatorTest skeleton
+
+```java
+class Ean13ValidatorTest {
+
+    private final Ean13Validator validator = new Ean13Validator();
+
+    @ParameterizedTest
+    @ValueSource(strings = {"4006381333931", "5901234123457"})
+    void acceptsValidValues(String value) {
+        assertThat(validator.isValid(value, null)).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "400638133393", "40063813339310", "4006381333932", "400638133393A", "4006-381333931"})
+    void rejectsInvalidValues(String value) {
+        assertThat(validator.isValid(value, null)).isFalse();
+    }
+
+    @Test
+    void acceptsNullBecauseRequiredIsCheckedSeparately() {
+        assertThat(validator.isValid(null, null)).isTrue();
+    }
+}
+```
 
 ## ControllerTest skeleton
 
@@ -79,7 +107,8 @@ class WidgetControllerTest {
 ```
 
 Pitfalls in tests
-- One field can produce two errors (e.g. `""` violates `@NotBlank` and `@Pattern`) → errors are sorted by field, then message; prefer invalid values that break exactly one rule, or assert both. Too-long e-mail: lengthen the **domain** (`"a@" + "b".repeat(95) + ".pl"`) – a local part over 64 chars also fails `@Email`.
+- One field can produce two errors (e.g. `""` violates `@NotBlank` and `@Pattern`) → errors are sorted by field, then message; prefer invalid values that break exactly one rule, or assert both. Too-long e-mail: lengthen the domain with **several labels** (`"a@" + "b".repeat(50) + "." + "c".repeat(50) + ".pl"`) – a local part over 64 chars or a single domain label over 63 chars also fails `@Email`.
+- Pattern rules counting digits: test the exact boundaries (phone: 8 digits invalid, 9 valid, 15 valid, 16 invalid). A value you think is invalid but is valid reaches the mocked service, which returns `null` → NPE in the controller instead of a 400.
 - `@WebMvcTest` loads only the controller + advice: a service that needs a `Clock` bean is mocked, so no extra config is needed there; `@DataJpaTest` does not load services.
 - Do not use `LocalDate.now()` in assertions of date rules – use a fixed `Clock` (`Clock.fixed(Instant.parse("2026-06-15T10:00:00Z"), ZoneOffset.UTC)`).
 - Never edit or weaken vehicle tests to make a new slice pass.

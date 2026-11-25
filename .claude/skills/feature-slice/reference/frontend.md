@@ -387,7 +387,7 @@ export const widgetsRoutes: Routes = [
 
 ## `widget-form.spec.ts` (mandatory cases)
 
-Copy `frontend/src/app/vehicles/vehicle-form.spec.ts` structure verbatim (`fill(type, index, value)`,
+Copy `frontend/src/app/vehicles/vehicle-form.spec.ts` structure verbatim (the list spec below has no vehicle original – use this template) (`fill(type, index, value)`,
 `select(value)`, `submit()`, `errors()`, `afterEach(() => http.verify())`) and cover:
 1. empty submit → only the `required` messages in field order, `http.expectNone('/api/widgets')`;
 2. format/range rules left to the backend → request sent, 400 `errors[]` flushed, messages shown;
@@ -395,6 +395,10 @@ Copy `frontend/src/app/vehicles/vehicle-form.spec.ts` structure verbatim (`fill(
 4. edit: `setInput('id', '3')`, `detectChanges()`, flush GET, change one field, exact PUT body, navigate;
 5. 404 on edit → `'Widget not found'`; 503 → ProblemDetail detail;
 6. object-level 400 (`field: null`) shown above the form; 409 detail shown.
+
+`fill(type, index, value)` finds inputs by `type` and position among inputs of that type – use the real
+type of each field (`text`, `email`, `tel`, `date`, `number`) and count positions per type. Drop the
+`select()` helper when the entity has no enum field (unused helpers fail lint/review).
 
 Checkbox in tests: `element.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click();`
 
