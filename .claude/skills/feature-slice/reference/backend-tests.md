@@ -34,6 +34,10 @@ naming `methodDoesWhatWhenCondition`, constants for test data, private static fa
 | RepositoryTest | `saveRejectsDuplicate<Field>` (each unique field) | `assertThatThrownBy(() -> repo.saveAndFlush(duplicate)).isInstanceOf(DataIntegrityViolationException.class)` (use `saveAndFlush` – `entityManager.flush()` throws an untranslated Hibernate exception); proves the SQL constraint exists |
 | ValidatorTest (per custom constraint) | valid values, invalid values (wrong length, non-digits, separators, bad checksum), `null` → valid | plain JUnit, `@ParameterizedTest` + `@ValueSource` allowed (in `spring-boot-starter-test`), `new XValidator().isValid(value, null)` |
 
+Partial operations: drop rows for endpoints that do not exist; for every endpoint that does exist keep
+its rows (success, 400, 404 parent, 409 if a rule). Always keep: repository save/read-back, list filtered by
+parent and sorted, FK rejection for a missing parent, `ON DELETE CASCADE` (delete parent → children gone).
+
 Nested variant adds: service 404 when parent is missing (message of the parent), 404 when the child belongs to another parent (`findByIdAndParentId` empty), list filtered by parent; controller paths with `{parentId}`, `Location` `http://localhost/api/parents/1/children/5`.
 
 ## ValidatorTest skeleton

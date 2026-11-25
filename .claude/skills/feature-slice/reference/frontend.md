@@ -500,7 +500,13 @@ detail template (inside the parent's `@else if (x.value(); as x)` block).
   }
 ```
 `child-section.ts`: `readonly parentId = input.required<number>()`, `children = childApi.list(this.parentId)`,
-an inline create form (same signal-form pattern as `WidgetForm`, but on success: `children.reload()` and
-reset `model.set(emptyModel())` instead of navigating), `actionError` signal for row actions (like `deleteError`).
+an inline create form: same signal-form pattern as `WidgetForm`, but the model is a plain
+`signal(emptyModel())` (no `linkedSignal` – nothing to load) and on success: `children.reload()` and
+`childForm().reset(emptyModel())` instead of navigating. **Do not** use `model.set(...)` to clear – submit
+marks every field touched, so the emptied required fields would immediately show "… is required"; `reset()`
+also clears touched/dirty (assert "no errors after a successful add" in the spec).
+`actionError` signal only if there are row actions (like `deleteError`).
+Request type: `Omit<Child, 'id' | 'parentId' | <server-managed fields>>`. Spec: no `provideRouter` when the
+section has no router dependency.
 Template: `<section><h2>Children</h2>` + table (with `@empty`) + `<h3>Add child</h3>` + form.
 Spec: list rendered for the given `parentId`, create posts to the nested URL and reloads, 400/409 shown.

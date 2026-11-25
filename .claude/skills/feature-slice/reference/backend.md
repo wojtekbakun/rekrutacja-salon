@@ -441,3 +441,20 @@ Use when the entity belongs to a parent (e.g. inspections of a vehicle). Differe
 - Mapper: `toEntity(Long parentId, ChildRequest request)`.
 - Controller: `@RequestMapping("/api/parents/{parentId}/children")`, every handler has `@PathVariable Long parentId`; `Location` still via `fromCurrentRequest().path("/{id}")`.
 - Generate only the operations the user asked for (a contract may have no PUT/DELETE). Extra endpoints are a bug, not a bonus.
+- Parent check: `parentRepository.existsById(parentId)` when the parent entity itself is not needed, `findById` when its fields are (e.g. a date used in a rule). The child service may depend on the parent feature's repository – that is the only allowed cross-package dependency.
+- Seed: reference parents by a unique key subselect (`(SELECT id FROM vehicle WHERE vin = '…')`), never hard-coded ids.
+- Location header still uses `fromCurrentRequest().path("/{id}")` even when there is no GET-by-id (consistent with the vehicle module); mention it in the report.
+
+## Partial operations (contract lists only some endpoints)
+
+Generate **only** what is used: no `updateEntity` without PUT, no `findByIdAndParentId` without an
+endpoint addressing a single child, no `exists…` without a uniqueness rule. Dead code fails review.
+
+## Server-managed fields (status, timestamps, computed flags)
+
+- Not in the request record (unknown JSON properties are ignored by Jackson – add a controller test that a
+  posted value is ignored).
+- Initial value set in `Mapper.toEntity` (e.g. `Status.PENDING`), with a one-line comment why.
+- In the entity constructor and response; TS request type omits it; shown in list/detail, never in the form.
+- Changing it later is a business operation (own endpoint, e.g. `PUT …/{id}/status`), not part of the generic update.
+

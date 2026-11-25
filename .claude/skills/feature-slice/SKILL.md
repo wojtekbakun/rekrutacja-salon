@@ -22,7 +22,8 @@ default in brackets and list it under "Assumptions" in the final report — do n
 | Table | `supplier` | snake_case singular |
 | Parent (nested resource) | `Vehicle` → `/api/vehicles/{vehicleId}/inspections` | none (top-level CRUD) |
 | Fields: name, type, required, max length, unique, format, enum values | `contactEmail: String, required, unique (case-insensitive), e-mail format` | String max 50 (100 for e-mail/longer text), required unless stated "optional" |
-| Operations | full CRUD | top-level: full CRUD; nested: only what the user lists |
+| Operations | full CRUD | top-level: full CRUD; nested: only what the user lists (see "Partial operations" in `backend.md`) |
+| Server-managed fields | `status` set to `PENDING` on create | none; see "Server-managed fields" in `backend.md` |
 
 Name rules: Java field camelCase = JSON field = TS field; SQL column snake_case; labels in English sentence case (`firstName` → "First name").
 
@@ -70,7 +71,9 @@ Rules that matter most (details in references):
 ```bash
 docker exec salon-dev bash -lc 'cd /workspace && ./test.sh'
 ```
-(Without the container: `./test.sh` from the repo root.) If a test fails, fix the **generated code** (never weaken an assertion or the vehicle tests). Then smoke-test the API if the app can be started:
+(Without the container: `./test.sh` from the repo root.) `test.sh` does not compile templates of components
+without a spec (e.g. a parent detail page you edited) and does not check formatting, so also run
+`cd frontend && npx ng build --output-path /tmp/ng-check && npx prettier --check "src/app/**/*.{ts,html}"` (and delete the output). If a test fails, fix the **generated code** (never weaken an assertion or the vehicle tests). Then smoke-test the API if the app can be started:
 `curl -i localhost:8080/api/<plural>` → 200; POST valid → 201 + `Location`; POST duplicate → 409; POST invalid → 400 with `errors`.
 
 ## 5. Final checklist and report
