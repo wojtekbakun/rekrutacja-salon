@@ -1,6 +1,8 @@
 package com.example.dealership.document;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,4 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface VehicleDocumentRepository extends JpaRepository<VehicleDocument, Long> {
 
     List<VehicleDocument> findByVehicleId(Long vehicleId, Sort sort);
+
+    Optional<VehicleDocument> findByIdAndVehicleId(Long id, Long vehicleId);
+
+    boolean existsByVehicleIdAndTypeAndStatusIn(Long vehicleId, DocumentType type, Collection<DocumentStatus> statuses);
 }

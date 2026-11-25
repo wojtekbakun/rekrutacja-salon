@@ -34,6 +34,11 @@ public class GlobalExceptionHandler {
         return validationProblem(errors);
     }
 
+    @ExceptionHandler(RequestValidationException.class)
+    public ProblemDetail handleRequestValidation(RequestValidationException ex) {
+        return validationProblem(ex.getErrors());
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleNotReadable(HttpMessageNotReadableException ex) {
         return validationProblem(List.of(toValidationError(ex.getCause())));

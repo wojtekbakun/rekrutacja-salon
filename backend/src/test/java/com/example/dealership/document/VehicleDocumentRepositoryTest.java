@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.example.dealership.vehicle.FuelType;
 import com.example.dealership.vehicle.Vehicle;
@@ -81,6 +82,35 @@ class VehicleDocumentRepositoryTest {
         entityManager.clear();
 
         assertThat(vehicleDocumentRepository.findById(document.getId())).isEmpty();
+    }
+
+    @Test
+    void existsByVehicleIdAndTypeAndStatusInFindsOnlyActiveDocumentsOfThatTypeAndVehicle() {
+        Long vehicleId = vehicle("WF0XXXGCDX0000004").getId();
+        Long otherVehicleId = vehicle("WF0XXXGCDX0000005").getId();
+        VehicleDocument rejected = document(vehicleId, "INV/1");
+        rejected.setStatus(DocumentStatus.REJECTED);
+        vehicleDocumentRepository.save(rejected);
+        vehicleDocumentRepository.save(document(otherVehicleId, "INV/2"));
+        entityManager.flush();
+        List<DocumentStatus> active = List.of(DocumentStatus.PENDING, DocumentStatus.VERIFIED);
+
+        assertThat(vehicleDocumentRepository.existsByVehicleIdAndTypeAndStatusIn(vehicleId, DocumentType.INVOICE, active))
+                .isFalse();
+        assertThat(vehicleDocumentRepository.existsByVehicleIdAndTypeAndStatusIn(otherVehicleId, DocumentType.INVOICE, active))
+                .isTrue();
+        assertThat(vehicleDocumentRepository.existsByVehicleIdAndTypeAndStatusIn(otherVehicleId, DocumentType.COC, active))
+                .isFalse();
+    }
+
+    @Test
+    void findByIdAndVehicleIdIgnoresDocumentsOfOtherVehicles() {
+        Long vehicleId = vehicle("WF0XXXGCDX0000004").getId();
+        Long otherVehicleId = vehicle("WF0XXXGCDX0000005").getId();
+        VehicleDocument document = vehicleDocumentRepository.saveAndFlush(document(vehicleId, "INV/1"));
+
+        assertThat(vehicleDocumentRepository.findByIdAndVehicleId(document.getId(), vehicleId)).isPresent();
+        assertThat(vehicleDocumentRepository.findByIdAndVehicleId(document.getId(), otherVehicleId)).isEmpty();
     }
 
     private Vehicle vehicle(String vin) {
