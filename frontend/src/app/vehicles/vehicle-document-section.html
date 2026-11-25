@@ -1,0 +1,91 @@
+<section>
+  <h2>Documents</h2>
+
+  @if (documents.isLoading()) {
+    <p>Loading…</p>
+  } @else if (documents.error(); as error) {
+    <p class="error" role="alert">{{ loadError(error) }}</p>
+  } @else if (documents.value(); as documents) {
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Number</th>
+          <th>Issue date</th>
+          <th>Expiry date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (document of documents; track document.id) {
+          <tr>
+            <td>{{ documentTypeLabels[document.type] }}</td>
+            <td>{{ document.number }}</td>
+            <td>{{ document.issueDate }}</td>
+            <td>{{ document.expiryDate ?? '—' }}</td>
+            <td>{{ documentStatusLabels[document.status] }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">No documents yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  <h3>Add document</h3>
+
+  <form [formRoot]="documentForm">
+    @for (error of documentForm().errors(); track error) {
+      <p class="error" role="alert">{{ error.message }}</p>
+    }
+
+    <label>
+      Type
+      <select [formField]="documentForm.type">
+        <option value="">Select type</option>
+        @for (type of documentTypes; track type) {
+          <option [value]="type">{{ documentTypeLabels[type] }}</option>
+        }
+      </select>
+    </label>
+    @if (documentForm.type().touched()) {
+      @for (error of documentForm.type().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Number
+      <input type="text" [formField]="documentForm.number" />
+    </label>
+    @if (documentForm.number().touched()) {
+      @for (error of documentForm.number().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Issue date
+      <input type="date" [formField]="documentForm.issueDate" />
+    </label>
+    @if (documentForm.issueDate().touched()) {
+      @for (error of documentForm.issueDate().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <label>
+      Expiry date
+      <input type="date" [formField]="documentForm.expiryDate" />
+    </label>
+    @if (documentForm.expiryDate().touched()) {
+      @for (error of documentForm.expiryDate().errors(); track error) {
+        <p class="error" role="alert">{{ error.message }}</p>
+      }
+    }
+
+    <button type="submit" [disabled]="documentForm().submitting()">Add</button>
+  </form>
+</section>

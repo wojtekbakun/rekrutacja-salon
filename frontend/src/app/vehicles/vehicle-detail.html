@@ -22,7 +22,5 @@
 
   <p><a [routerLink]="['/vehicles', vehicle.id, 'edit']">Edit</a></p>
 
-  <section>
-    <h2>Documents</h2>
-  </section>
+  <app-vehicle-document-section [vehicleId]="vehicle.id" />
 }
